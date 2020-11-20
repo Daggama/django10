@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Local Library Home</h1>
 
-  <p>Тамер был тут</p>
+  <p>Welcome to <em>LocalLibrary</em>, a very basic Django website developed as a tutorial example on the Mozilla Developer Network.</p>
 
 <h2>Dynamic content</h2>
 
@@ -14,6 +14,7 @@
     <li><strong>Copies available:</strong> {{ num_instances_available }}</li>
     <li><strong>Authors:</strong> {{ num_authors }}</li>
   </ul>
+
   <p>You have visited this page {{ num_visits }}{% if num_visits == 1 %} time{% else %} times{% endif %}.</p>
 
 {% endblock %}

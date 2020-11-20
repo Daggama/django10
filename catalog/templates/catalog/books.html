@@ -4,7 +4,7 @@
   <h1>All books</h1>  
   <ul>
    {% for book in book_list %}
-       <li><a href="{% url 'book_detail' id=book.id%}"><strong>Book title: </strong>{{book.title}}</a></li>
+       <li><a href="{% url 'book_details' id=book.id%}"><strong>Book title: </strong>{{book.title}}</a></li>
    {% endfor %}
   </ul> 
 {% endblock %}

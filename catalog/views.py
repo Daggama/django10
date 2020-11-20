@@ -1,8 +1,52 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .models import Book, Author, BookInstance, Genre
 from django.views import generic
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-# Create your views here.
+import datetime
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from catalog.forms import RenewBookModelForm
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from .models import Author
+
+
+
+@login_required
+@permission_required('catalog.can_mark_returned')
+def renew_book_librarian(request, pk):
+    """
+    View function for renewing a specific BookInstance by librarian
+    """
+    book_inst = get_object_or_404(BookInstance, pk=pk)
+
+    # If this is a POST request then process the Form data
+    if request.method == 'POST':
+
+        # Create a form instance and populate it with data from the request (binding):
+        form = RenewBookModelForm(request.POST)
+
+        # Check if the form is valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
+            book_inst.due_back = form.cleaned_data['due_back']
+            book_inst.save()
+
+            # redirect to a new URL:
+            return HttpResponseRedirect(reverse('my-borrowed') )
+
+    # If this is a GET (or any other method) create the default form.
+    else:
+        proposed_renewal_date = datetime.date.today() + datetime.timedelta(weeks=3)
+        form = RenewBookModelForm(initial={'due_back': proposed_renewal_date,})
+
+    return render(request, 'catalog/book_renew_librarian.html', {'form': form, 'bookinst':book_inst})
+
+
+
+
+
 def index(request):
     num_books=Book.objects.all().count()
     num_instances=BookInstance.objects.all().count()
@@ -25,21 +69,6 @@ def index(request):
         'num_visits':num_visits}, # num_visits appended
     )
 
-#def books(request):
-#	return render(request, 'catalog/books.html', {
-#		'book_list': book_list_all
-#	})
-#
-#def book_detail(request, id):
-#	book=Book.objects.get(id=id)
-#	return render(request, 'catalog/book_detail.html', {
-#		'book': book
-#	})
-#    author=Author.objects.all()
-#    return render(request, 'catalog/author_detail.html', {'author':author})
-#def author(request):
-#    author_list=Author.objects.all()
-#    return render(request, 'catalog/author_list.html', {'author_list': author_list})
 class LoanedBooksByUserListView(LoginRequiredMixin,generic.ListView):
     """
     Generic class-based view listing books on loan to current user. 
@@ -54,7 +83,8 @@ class LoanedBooksByUserListView(LoginRequiredMixin,generic.ListView):
 
 class BookListView(generic.ListView):
     model = Book
-    
+    peginate_by = 2
+
 class BookDetailView(generic.DetailView):
     model = Book
     def book_detail_view(request, primary_key):
@@ -68,3 +98,49 @@ class AuthorListView(generic.ListView):
     model = Author
 class AuthorDetailView(generic.DetailView):
     model = Author
+
+
+
+class AuthorCreate(LoginRequiredMixin, CreateView):
+    model = Author
+    fields = '__all__'
+    #initial={'date_of_death':'12/10/2016',}
+
+class AuthorUpdate(LoginRequiredMixin, UpdateView):
+    model = Author
+    fields = ['first_name','last_name','date_of_birth','date_of_death']
+
+class AuthorDelete(LoginRequiredMixin, DeleteView):
+    model = Author
+    success_url = reverse_lazy('authors')    
+
+class BookCreate(LoginRequiredMixin, CreateView):
+    model = Book
+    fields = '__all__'
+    #initial={'date_of_death':'12/10/2016',}
+
+class BookUpdate(LoginRequiredMixin, UpdateView):
+    model = Book
+    fields = '__all__'
+
+
+class BookDelete(LoginRequiredMixin, DeleteView):
+    model = Book
+    success_url = reverse_lazy('books')
+
+
+#def books(request):
+#   return render(request, 'catalog/books.html', {
+#       'book_list': book_list_all
+#   })
+#
+#def book_detail(request, id):
+#   book=Book.objects.get(id=id)
+#   return render(request, 'catalog/book_detail.html', {
+#       'book': book
+#   })
+#    author=Author.objects.all()
+#    return render(request, 'catalog/author_detail.html', {'author':author})
+#def author(request):
+#    author_list=Author.objects.all()
+#    return render(request, 'catalog/author_list.html', {'author_list': author_list})
