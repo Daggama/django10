@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 import datetime
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from catalog.forms import RenewBookModelForm
+from catalog.forms import RenewBookForm
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from .models import Author
